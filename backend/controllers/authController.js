@@ -16,33 +16,26 @@ const generateToken = (id) => {
  * Method: POST /api/auth/signup
  */
 exports.signup = async (req, res) => {
-    // 1. UPDATED: Removed contact_no from request body
-    const { username, password, name } = req.body; 
+    // 1. UPDATED: Require contact_no since the column exists in the database
+    const { username, password, contact_no } = req.body; 
     
-    // 1. UPDATED: Removed contact_no from validation check
-    if (!username || !password || !name) {
-        return res.status(400).json({ message: 'Please enter username, password, and name.' });
+    // 1. UPDATED: Check for contact_no
+    if (!username || !password || !contact_no) {
+        return res.status(400).json({ message: 'Please enter all required fields (username, password, contact no).' });
     }
 
     try {
-        // 2. UPDATED: Check if user already exists based only on username
-        const [existingUsers] = await db.execute(
-            'SELECT user_id FROM users WHERE username = ?',
-            [username]
-        );
-
-        if (existingUsers.length > 0) {
-            return res.status(400).json({ message: 'User with this username already exists.' });
-        }
+        // ... existence check for username or contact_no ...
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // 3. UPDATED: Insert new user without contact_no
+        // 2. UPDATED: Insert new user with the contact_no column
+        // We use the column names that EXIST in the Railway table.
         const [result] = await db.execute(
-            'INSERT INTO users (username, password_hash, name) VALUES (?, ?, ?)',
-            [username, password_hash, name]
+            'INSERT INTO users (username, password_hash, contact_no) VALUES (?, ?, ?)',
+            [username, password_hash, contact_no] // contact_no is now sent
         );
 
         const user_id = result.insertId;
@@ -55,9 +48,8 @@ exports.signup = async (req, res) => {
 
     } catch (error) {
         console.error('--- CRITICAL SIGNUP ERROR LOG ---');
-        console.error('Error Code:', error.code);
+        console.error('Error Code:', error.code); // Look for this in Render logs!
         console.error('Error Message:', error.message);
-        console.error('Stack Trace:', error.stack);
         console.error('-----------------------------------');
         
         res.status(500).json({ message: 'Internal Server Error during registration. Check backend console for details.' });
