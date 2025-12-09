@@ -16,23 +16,33 @@ const generateToken = (id) => {
  * Method: POST /api/auth/signup
  */
 exports.signup = async (req, res) => {
-    // 1. UPDATED: Require contact_no since the column exists in the database
+    // Requires: username, password, contact_no (matches DB schema)
     const { username, password, contact_no } = req.body; 
     
-    // 1. UPDATED: Check for contact_no
+    // Check for all required fields
     if (!username || !password || !contact_no) {
-        return res.status(400).json({ message: 'Please enter all required fields (username, password, contact no).' });
+        return res.status(400).json({ message: 'Please enter username, password, and contact number.' });
     }
 
     try {
-        // ... existence check for username or contact_no ...
+        // 🔥 CRITICAL FIX 1: Complete the existence check logic
+        // Check if user already exists by username or contact_no
+        const [existingUsers] = await db.execute(
+            'SELECT user_id FROM users WHERE username = ? OR contact_no = ?',
+            [username, contact_no]
+        );
+
+        if (existingUsers.length > 0) {
+            return res.status(400).json({ message: 'User with this username or contact number already exists.' });
+        }
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // 2. UPDATED: Insert new user with the contact_no column
-        // We use the column names that EXIST in the Railway table.
+        // 🔥 CRITICAL FIX 2: Check INSERT query columns
+        // The INSERT query must match the columns you pass in the array.
+        // Assuming your users table has: username, password_hash, contact_no
         const [result] = await db.execute(
             'INSERT INTO users (username, password_hash, contact_no) VALUES (?, ?, ?)',
             [username, password_hash, contact_no] // contact_no is now sent
@@ -48,10 +58,12 @@ exports.signup = async (req, res) => {
 
     } catch (error) {
         console.error('--- CRITICAL SIGNUP ERROR LOG ---');
-        console.error('Error Code:', error.code); // Look for this in Render logs!
+        console.error('Error Code:', error.code); 
         console.error('Error Message:', error.message);
+        console.error('Stack Trace:', error.stack);
         console.error('-----------------------------------');
         
+        // If the error is due to a missing column (e.g., 'name' was sent by frontend but is missing from DB)
         res.status(500).json({ message: 'Internal Server Error during registration. Check backend console for details.' });
     }
 };
@@ -66,8 +78,9 @@ exports.login = async (req, res) => {
 
     try {
         // Find user by username
+        // NOTE: If the 'name' column is missing in your Railway database, this SELECT query will fail.
+        // If necessary, remove 'name' from the SELECT list.
         const [users] = await db.execute(
-            // NOTE: Added 'name' to SELECT list to be useful on the frontend
             'SELECT user_id, username, password_hash, name FROM users WHERE username = ?',
             [username]
         );
