@@ -1,9 +1,14 @@
 // frontend/utils/api.js
 import axios from 'axios';
+// frontend/utils/api.js 
 
-const base = (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE)
-  ? process.env.NEXT_PUBLIC_API_BASE
-  : (process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api');
+// Set API_BASE_URL via Vercel Environment Variable (NEXT_PUBLIC_API_URL)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// ...
+
+const base = (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL)
+  ? process.env.NEXT_PUBLIC_API_URL
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api');
 
 const API = axios.create({
   baseURL: base, 
