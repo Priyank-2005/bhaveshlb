@@ -1,4 +1,4 @@
-// controllers/authController.js
+// backend/controllers/authController.js
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -10,36 +10,39 @@ const generateToken = (id) => {
     return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' }); // Token expires in 30 days
 };
 
+//-------------------------------------------------------------
 /**
  * 1. SIGNUP: Register a new user
  * Method: POST /api/auth/signup
  */
 exports.signup = async (req, res) => {
-    const { username, password, contact_no } = req.body;
+    // 1. UPDATED: Removed contact_no from request body
+    const { username, password, name } = req.body; 
     
-    if (!username || !password || !contact_no) {
-        return res.status(400).json({ message: 'Please enter all fields.' });
+    // 1. UPDATED: Removed contact_no from validation check
+    if (!username || !password || !name) {
+        return res.status(400).json({ message: 'Please enter username, password, and name.' });
     }
 
     try {
-        // Check if user already exists
+        // 2. UPDATED: Check if user already exists based only on username
         const [existingUsers] = await db.execute(
-            'SELECT user_id FROM users WHERE username = ? OR contact_no = ?',
-            [username, contact_no]
+            'SELECT user_id FROM users WHERE username = ?',
+            [username]
         );
 
         if (existingUsers.length > 0) {
-            return res.status(400).json({ message: 'User with this username or contact number already exists.' });
+            return res.status(400).json({ message: 'User with this username already exists.' });
         }
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // Insert new user into the database
+        // 3. UPDATED: Insert new user without contact_no
         const [result] = await db.execute(
-            'INSERT INTO users (username, password_hash, contact_no) VALUES (?, ?, ?)',
-            [username, password_hash, contact_no]
+            'INSERT INTO users (username, password_hash, name) VALUES (?, ?, ?)',
+            [username, password_hash, name]
         );
 
         const user_id = result.insertId;
@@ -57,10 +60,10 @@ exports.signup = async (req, res) => {
         console.error('Stack Trace:', error.stack);
         console.error('-----------------------------------');
         
-        // Send a generic error message back to the frontend
         res.status(500).json({ message: 'Internal Server Error during registration. Check backend console for details.' });
     }
 };
+//-------------------------------------------------------------
 
 /**
  * 2. LOGIN: Authenticate user
@@ -72,7 +75,8 @@ exports.login = async (req, res) => {
     try {
         // Find user by username
         const [users] = await db.execute(
-            'SELECT user_id, password_hash FROM users WHERE username = ?',
+            // NOTE: Added 'name' to SELECT list to be useful on the frontend
+            'SELECT user_id, username, password_hash, name FROM users WHERE username = ?',
             [username]
         );
 
@@ -94,7 +98,8 @@ exports.login = async (req, res) => {
             message: 'Login successful.',
             token: generateToken(user.user_id),
             user_id: user.user_id,
-            username: user.username, // <-- ADD THIS LINE
+            username: user.username, 
+            name: user.name,
         });
 
     } catch (error) {
@@ -102,18 +107,15 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Server error during login.' });
     }
 };
-
+//-------------------------------------------------------------
 
 /**
  * 3. FORGOT PASSWORD (OTP): Placeholder functions
  */
 exports.sendOtp = (req, res) => {
-    // Logic to find user by contact_no and send OTP via Twilio
-    // Requires Twilio setup and storing a temporary OTP/expiration time in the database
     res.status(501).json({ message: 'OTP sending functionality is not yet implemented (requires Twilio setup).' });
 };
 
 exports.verifyOtpAndResetPassword = (req, res) => {
-    // Logic to verify the OTP and update the user's password_hash
     res.status(501).json({ message: 'OTP verification and reset functionality is not yet implemented.' });
 };
