@@ -29,7 +29,7 @@ export default function InwardEntryDetailsForm({ entryId, setViewMode, setEntryT
         };
 
         fetchEntryDetails();
-    }, [entryId]); 
+    }, [entryId]);
 
     // --- Form Handlers ---
     const handleHeaderChange = (e) => {
@@ -45,14 +45,14 @@ export default function InwardEntryDetailsForm({ entryId, setViewMode, setEntryT
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        
-        const formattedDate = entryData.inward_date 
+
+        const formattedDate = entryData.inward_date
             ? entryData.inward_date.substring(0, 10) // FIX: Date formatting
             : null;
 
         const payload = {
             inward_date: formattedDate,
-            party_id: entryData.party_id, 
+            party_id: entryData.party_id,
             entry_type: entryData.entry_type,
             line_items: entryData.line_items.map(item => ({
                 item_id: item.item_id,
@@ -84,16 +84,16 @@ export default function InwardEntryDetailsForm({ entryId, setViewMode, setEntryT
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-bold text-indigo-700">Edit Inward Entry #{entryData.entry_id}</h2>
-            
-            <button 
-                onClick={() => { setViewMode('list'); setEntryToViewId(null); }} 
+
+            <button
+                onClick={() => { setViewMode('list'); setEntryToViewId(null); }}
                 className="mb-4 text-sm text-indigo-600 hover:text-indigo-800"
             >
                 ← Back to List
             </button>
-            
+
             <form onSubmit={handleUpdateSubmit} className="space-y-6">
-                
+
                 {/* Entry Header */}
                 <div className="grid grid-cols-3 gap-4 border p-4 rounded-md bg-gray-50">
                     <div>
@@ -106,17 +106,24 @@ export default function InwardEntryDetailsForm({ entryId, setViewMode, setEntryT
                         <input type="text" value={entryData.party_name} readOnly className="mt-1 block w-full border rounded-md p-2 bg-gray-200" />
                     </div>
                 </div>
-                
+
                 {/* Line Items Grid */}
                 <h3 className="text-xl font-semibold pt-4 border-t">Items Received (Details)</h3>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        {/* Table headers omitted for brevity, ensure they match the list view */}
+                        <thead>
+                            <tr className="bg-gray-50">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot No.</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Godown No.</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            </tr>
+                        </thead>
+
                         <tbody className="bg-white divide-y divide-gray-200">
                             {entryData.line_items.map((item, index) => (
                                 <tr key={item.line_item_id || index}>
                                     <td className="px-3 py-4 whitespace-nowrap text-sm">{item.item_name}</td>
-                                    
                                     <td className="px-3 py-4">
                                         <input type="text" name="lot_no" value={item.lot_no || ''} onChange={(e) => handleLineItemChange(index, e)} className="w-24 border rounded-md p-1" />
                                     </td>

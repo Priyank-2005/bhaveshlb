@@ -26,7 +26,7 @@ export default function OutwardEntryDetailsForm({ entryId, setViewMode, setEntry
             }
         };
         fetchEntryDetails();
-    }, [entryId]); 
+    }, [entryId]);
 
     // --- Form Handlers ---
     const handleHeaderChange = (e) => {
@@ -42,15 +42,15 @@ export default function OutwardEntryDetailsForm({ entryId, setViewMode, setEntry
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        
-        const formattedDate = entryData.outward_date 
-            ? entryData.outward_date.substring(0, 10) 
+
+        const formattedDate = entryData.outward_date
+            ? entryData.outward_date.substring(0, 10)
             : null;
 
         const payload = {
             outward_date: formattedDate,
             do_no: entryData.do_no,
-            party_id: entryData.party_id, 
+            party_id: entryData.party_id,
             vehicle_no: entryData.vehicle_no,
             line_items: entryData.line_items.map(item => ({
                 item_id: item.item_id,
@@ -82,16 +82,16 @@ export default function OutwardEntryDetailsForm({ entryId, setViewMode, setEntry
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-bold text-indigo-700">Edit Outward Entry #{entryData.entry_id}</h2>
-            
-            <button 
-                onClick={() => { setViewMode('list'); setEntryToViewId(null); }} 
+
+            <button
+                onClick={() => { setViewMode('list'); setEntryToViewId(null); }}
                 className="mb-4 text-sm text-indigo-600 hover:text-indigo-800"
             >
                 ← Back to List
             </button>
-            
+
             <form onSubmit={handleUpdateSubmit} className="space-y-6">
-                
+
                 {/* Entry Header */}
                 <div className="grid grid-cols-4 gap-4 border p-4 rounded-md bg-gray-50">
                     <div>
@@ -111,23 +111,38 @@ export default function OutwardEntryDetailsForm({ entryId, setViewMode, setEntry
                         <input type="text" name="vehicle_no" value={entryData.vehicle_no || ''} onChange={handleHeaderChange} className="mt-1 block w-full border rounded-md p-2 bg-white" />
                     </div>
                 </div>
-                
+
                 {/* Line Items Grid */}
                 <h3 className="text-xl font-semibold pt-4 border-t">Items Dispatched (Details)</h3>
                 <div className="overflow-x-auto">
-                    {/* Table headers omitted for brevity */}
                     <table className="min-w-full divide-y divide-gray-200">
+
+                        {/* 🔥 CRITICAL FIX: ADDING THE TABLE HEADERS (LABELS) */}
+                        <thead>
+                            <tr className="bg-gray-50">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot No.</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Godown No.</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                {/* Add any other headers here (e.g., Rate, Unit, Amount) */}
+                            </tr>
+                        </thead>
+
                         <tbody className="bg-white divide-y divide-gray-200">
                             {entryData.line_items.map((item, index) => (
                                 <tr key={item.line_item_id || index}>
+                                    {/* Item Name (Read-only data) */}
                                     <td className="px-3 py-4 whitespace-nowrap text-sm">{item.item_name}</td>
-                                    
+
+                                    {/* Lot No. (Input field) */}
                                     <td className="px-3 py-4">
                                         <input type="text" name="lot_no" value={item.lot_no || ''} onChange={(e) => handleLineItemChange(index, e)} className="w-24 border rounded-md p-1" />
                                     </td>
+                                    {/* Godown No. (Input field) */}
                                     <td className="px-3 py-4">
                                         <input type="text" name="godown_no" value={item.godown_no || ''} onChange={(e) => handleLineItemChange(index, e)} className="w-24 border rounded-md p-1" />
                                     </td>
+                                    {/* Quantity (Input field) */}
                                     <td className="px-3 py-4">
                                         <input type="number" name="quantity" step="0.01" value={item.quantity} onChange={(e) => handleLineItemChange(index, e)} className="w-24 border rounded-md p-1" required />
                                     </td>
