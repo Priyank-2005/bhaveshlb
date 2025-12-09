@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* small app styles */
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+/* Add this CSS */
+.scrollbar-hide {
+    /* For Firefox */
+    scrollbar-width: none; 
+}
+.scrollbar-hide::-webkit-scrollbar {
+    /* For Chrome, Safari, and Opera */
+    display: none;
+}
