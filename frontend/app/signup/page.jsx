@@ -8,7 +8,8 @@ import Link from 'next/link';
 import API from '@/utils/api';
 
 export default function SignupPage() {
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    // 1. 🔥 FIX: ADDED contact_no to initial state
+    const [formData, setFormData] = useState({ username: '', password: '', contact_no: '' }); 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -23,11 +24,14 @@ export default function SignupPage() {
         setLoading(true);
 
         try {
-            const response = await API.post('/auth/signup', formData);
+            // Sends { username, password, contact_no } to /api/auth/signup
+            const response = await API.post('/auth/signup', formData); 
             
-            // Store token and username upon successful signup (acts as immediate login)
+            // Store token upon successful signup (acts as immediate login)
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('username', response.data.username); 
+            // NOTE: Since the backend response doesn't consistently return 'username', 
+            // we will store the username from the form input instead of response.data.username
+            localStorage.setItem('username', formData.username); 
 
             alert('Account created successfully! Redirecting to dashboard.');
             router.push('/dashboard');
@@ -67,6 +71,18 @@ export default function SignupPage() {
                         <input
                             type="password"
                             name="password"
+                            required
+                            onChange={handleChange}
+                            className="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                    </div>
+                    
+                    {/* 2. 🔥 FIX: ADDED Contact Number Field */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+                        <input
+                            type="tel"
+                            name="contact_no" // MUST match the backend variable name
                             required
                             onChange={handleChange}
                             className="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
