@@ -2,18 +2,24 @@
 
 const express = require('express');
 const router = express.Router();
-const { 
-    createOutwardEntry, getOutwardEntries, getOutwardEntryDetails, updateOutwardEntry,deleteOutwardEntry
+const {
+  createOutwardEntry,
+  getOutwardEntries,
+  getOutwardEntryDetails,
+  updateOutwardEntry,
+  deleteOutwardEntry
 } = require('../controllers/outwardController');
-const { protect } = require('../middleware/authMiddleware'); // Security middleware
 
+const { protect } = require('../middleware/authMiddleware');
+
+// All routes protected
 router.route('/')
-    .post(protect, createOutwardEntry) // Create new entry
-    .get(protect, getOutwardEntries); // Get all entries (summary list)
+  .post(protect, createOutwardEntry)
+  .get(protect, getOutwardEntries);
 
 router.route('/:id')
-    .get(protect, getOutwardEntryDetails) // Get single entry with line items
-    .put(protect, updateOutwardEntry) //
-    .delete(protect, deleteOutwardEntry); // Delete entry
+  .get(protect, getOutwardEntryDetails)
+  .put(protect, updateOutwardEntry)
+  .delete(protect, deleteOutwardEntry);
 
 module.exports = router;
