@@ -11,19 +11,43 @@ const cors = require('cors');
 
 dotenv.config();
 
+// ------------------------------------------------------------------
+// 🔥 CRITICAL FIX: Define allowed origins for production and development
+const allowedOrigins = [
+    'https://bhaveshlb.vercel.app', // <-- YOUR PRODUCTION FRONTEND URL (Vercel)
+    'http://localhost:3000',        // <-- LOCAL DEVELOPMENT FRONTEND
+];
+
+const corsOptions = {
+    // Check if the requesting origin is in the allowed list
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // IMPORTANT: Allows cookies/authorization headers
+};
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
 
-app.use(cors({
-    origin: 'http://localhost:3000' 
-}));
+// 🔥 CRITICAL FIX: Apply the dynamic CORS options
+app.use(cors(corsOptions)); 
+// ------------------------------------------------------------------
+
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/masters', mastersRoutes); // <-- ADD THIS LINE (Prefix for master data)
+app.use('/api/masters', mastersRoutes);
 app.use('/api/inward', inwardRoutes);
 app.use('/api/outward', outwardRoutes);
 
