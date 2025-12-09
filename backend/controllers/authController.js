@@ -77,11 +77,9 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Find user by username
-        // NOTE: If the 'name' column is missing in your Railway database, this SELECT query will fail.
-        // If necessary, remove 'name' from the SELECT list.
+        // 🔥 CRITICAL FIX: Removed 'name' from the SELECT list.
         const [users] = await db.execute(
-            'SELECT user_id, username, password_hash, name FROM users WHERE username = ?',
+            'SELECT user_id, username, password_hash FROM users WHERE username = ?',
             [username]
         );
 
@@ -104,7 +102,8 @@ exports.login = async (req, res) => {
             token: generateToken(user.user_id),
             user_id: user.user_id,
             username: user.username, 
-            name: user.name,
+            // 🔥 CRITICAL FIX: Removed 'name' from the response object
+            // name: user.name, // DELETE or COMMENT OUT this line
         });
 
     } catch (error) {
